@@ -14,71 +14,78 @@ body{
   font-family:Arial, Helvetica, sans-serif;
   color:white;
   background:#000;
-  overflow-x:hidden;
+  overflow:hidden;
 }
 
 .bg{
   position:fixed;
   inset:0;
   background:url("pochette-jade.jpg") center/cover no-repeat;
-  filter:blur(30px) brightness(.45);
-  transform:scale(1.15);
+  filter:blur(32px) brightness(.42);
+  transform:scale(1.18);
   z-index:-2;
 }
 
 .veil{
   position:fixed;
   inset:0;
-  background:radial-gradient(circle at center, rgba(255,255,255,.08), rgba(0,0,0,.92));
+  background:
+    radial-gradient(circle at center, rgba(255,210,230,.12), rgba(0,0,0,.92)),
+    linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.95));
   z-index:-1;
 }
 
 .page{
   min-height:100vh;
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
   padding:28px;
 }
 
 .card{
-  width:min(960px,100%);
-  background:rgba(10,10,15,.75);
+  width:min(980px,100%);
+  background:rgba(10,10,15,.76);
   border:1px solid rgba(255,255,255,.18);
-  border-radius:28px;
-  padding:28px;
-  box-shadow:0 30px 90px rgba(0,0,0,.7);
-  backdrop-filter:blur(14px);
+  border-radius:30px;
+  padding:30px;
+  box-shadow:0 35px 100px rgba(0,0,0,.75);
+  backdrop-filter:blur(16px);
   text-align:center;
 }
 
 h1{
-  margin:0 0 8px;
-  font-size:clamp(2rem,5vw,4rem);
+  margin:0;
+  font-size:clamp(2.2rem,5vw,4rem);
   color:#ffd7e8;
   letter-spacing:.04em;
+  text-shadow:0 0 26px rgba(255,215,232,.38);
 }
 
 .subtitle{
-  margin:0 0 28px;
-  color:rgba(255,255,255,.8);
+  margin:8px 0 28px;
+  color:rgba(255,255,255,.78);
 }
 
 .main{
   display:grid;
-  grid-template-columns:1fr 1.1fr;
-  gap:30px;
+  grid-template-columns:1fr 1.12fr;
+  gap:34px;
   align-items:center;
 }
 
 .disc{
-  width:min(360px,78vw);
+  width:min(370px,78vw);
   aspect-ratio:1/1;
   border-radius:50%;
   overflow:hidden;
   position:relative;
+  margin:auto;
   background:url("pochette-jade.jpg") center/cover no-repeat;
-  box-shadow:0 25px 70px rgba(0,0,0,.7);
+  box-shadow:
+    inset 0 0 0 12px rgba(0,0,0,.28),
+    inset 0 0 70px rgba(0,0,0,.58),
+    0 25px 80px rgba(0,0,0,.75);
 }
 
 .disc.audio{
@@ -97,6 +104,7 @@ h1{
   height:100%;
   object-fit:cover;
   display:none;
+  z-index:1;
 }
 
 .disc.video video{
@@ -109,13 +117,30 @@ h1{
   inset:0;
   border-radius:50%;
   background:
-    repeating-radial-gradient(circle, rgba(255,255,255,.16) 0 1px, rgba(0,0,0,.06) 2px 7px),
-    radial-gradient(circle at center, transparent 0 58%, rgba(0,0,0,.35) 75%, rgba(0,0,0,.75) 100%);
+    repeating-radial-gradient(circle, rgba(255,255,255,.16) 0 1px, rgba(0,0,0,.05) 2px 7px),
+    radial-gradient(circle at center, transparent 0 55%, rgba(0,0,0,.32) 73%, rgba(0,0,0,.78) 100%);
+  z-index:3;
   pointer-events:none;
 }
 
 .disc.video::before{
   animation:edgeSpin 7s linear infinite;
+}
+
+.disc::after{
+  content:"";
+  position:absolute;
+  inset:42%;
+  border-radius:50%;
+  background:radial-gradient(circle,#111,#000);
+  border:3px solid rgba(255,255,255,.28);
+  box-shadow:0 0 20px rgba(255,255,255,.13);
+  z-index:4;
+  pointer-events:none;
+}
+
+.disc.video::after{
+  display:none;
 }
 
 @keyframes spin{
@@ -133,12 +158,11 @@ h1{
 .now{
   font-size:1.45rem;
   font-weight:bold;
-  margin-bottom:18px;
   color:#f4d27a;
+  margin-bottom:18px;
 }
 
-.track,
-.video-btn{
+.track{
   width:100%;
   border:1px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.08);
@@ -149,19 +173,14 @@ h1{
   font-size:1rem;
   text-align:left;
   margin-bottom:12px;
+  transition:.2s;
 }
 
 .track:hover,
-.track.active,
-.video-btn:hover{
-  background:rgba(244,210,122,.22);
-  border-color:rgba(244,210,122,.7);
-}
-
-.video-btn{
-  display:none;
-  text-align:center;
-  background:rgba(244,210,122,.25);
+.track.active{
+  background:rgba(244,210,122,.24);
+  border-color:rgba(244,210,122,.75);
+  transform:translateY(-1px);
 }
 
 audio{
@@ -169,13 +188,40 @@ audio{
   margin-top:10px;
 }
 
+.video-controls{
+  display:none;
+  margin-top:10px;
+}
+
+.video-controls button{
+  width:100%;
+  padding:14px;
+  border-radius:15px;
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(244,210,122,.25);
+  color:white;
+  font-size:1rem;
+  cursor:pointer;
+}
+
+.video-controls button:hover{
+  background:rgba(244,210,122,.38);
+}
+
+.video-controls input{
+  width:100%;
+  margin-top:14px;
+}
+
 .hint{
   margin-top:14px;
   font-size:.9rem;
   color:rgba(255,255,255,.58);
+  line-height:1.35;
 }
 
 @media(max-width:760px){
+  body{overflow:auto}
   .main{grid-template-columns:1fr}
   .player{text-align:center}
   .track{text-align:center}
@@ -184,7 +230,7 @@ audio{
 </head>
 
 <body>
-<div class="bg"></div>
+<div class="bg" id="bg"></div>
 <div class="veil"></div>
 
 <main class="page">
@@ -194,23 +240,25 @@ audio{
 
   <div class="main">
     <div class="disc audio" id="disc">
-      <video id="video" playsinline muted preload="metadata"></video>
+      <video id="video" playsinline preload="metadata"></video>
     </div>
 
     <div class="player">
       <div class="now" id="now">Choisir une chanson</div>
 
       <button class="track" onclick="playAudio(this,'dans-attente-jade.mp3')">Dans l’attente de Jade</button>
-      <button class="track" onclick="prepareVideo(this,'effet-jade-github.mp4')">Effet Jade</button>
+      <button class="track" onclick="playVideo(this,'effet-jade-github.mp4')">Effet Jade</button>
       <button class="track" onclick="playAudio(this,'jade-au-petit-matin.mp3')">Jade au petit matin</button>
 
       <audio id="audio" controls preload="metadata"></audio>
 
-      <button class="video-btn" id="videoBtn" onclick="toggleVideo()">▶ Lancer / Pause le film</button>
-      <button class="video-btn" id="soundBtn" onclick="toggleSound()">🔊 Activer / couper le son</button>
+      <div class="video-controls" id="videoControls">
+        <button onclick="toggleVideo()">▶ Lecture / Pause</button>
+        <input id="videoRange" type="range" min="0" max="100" value="0">
+      </div>
 
       <div class="hint" id="hint">
-        Pour Effet Jade, la vidéo démarre volontairement en muet pour éviter le blocage navigateur.
+        Le disque tourne pour les chansons. Pour le film, l’image s’affiche dans le disque avec une légère rotation sur les bords.
       </div>
     </div>
   </div>
@@ -219,13 +267,14 @@ audio{
 
 <script>
 const disc = document.getElementById("disc");
+const bg = document.getElementById("bg");
 const audio = document.getElementById("audio");
 const video = document.getElementById("video");
 const now = document.getElementById("now");
-const buttons = document.querySelectorAll(".track");
-const videoBtn = document.getElementById("videoBtn");
-const soundBtn = document.getElementById("soundBtn");
 const hint = document.getElementById("hint");
+const buttons = document.querySelectorAll(".track");
+const videoControls = document.getElementById("videoControls");
+const videoRange = document.getElementById("videoRange");
 
 function activeButton(btn){
   buttons.forEach(b => b.classList.remove("active"));
@@ -244,11 +293,11 @@ function reset(){
 
   audio.style.display = "block";
   video.style.display = "none";
-  videoBtn.style.display = "none";
-  soundBtn.style.display = "none";
+  videoControls.style.display = "none";
 
   disc.classList.remove("playing","audio","video");
   disc.style.backgroundImage = 'url("pochette-jade.jpg")';
+  bg.style.backgroundImage = 'url("pochette-jade.jpg")';
 }
 
 function playAudio(btn, src){
@@ -266,49 +315,43 @@ function playAudio(btn, src){
   });
 }
 
-function prepareVideo(btn, src){
+function playVideo(btn, src){
   reset();
   activeButton(btn);
 
   now.textContent = "Effet Jade";
+  hint.textContent = "Film en lecture dans le disque.";
   audio.style.display = "none";
-  videoBtn.style.display = "block";
-  soundBtn.style.display = "block";
+  videoControls.style.display = "block";
 
   disc.classList.add("video");
-
-  video.src = src;
-  video.muted = true;
   video.style.display = "block";
+  video.src = src;
+  video.muted = false;
   video.load();
 
-  setTimeout(() => {
+  video.play().then(() => {
+    disc.classList.add("playing");
+  }).catch(() => {
+    video.muted = true;
     video.play().then(() => {
       disc.classList.add("playing");
-      hint.textContent = "Vidéo lancée en muet. Clique sur “Activer / couper le son” si besoin.";
+      hint.textContent = "Vidéo lancée en muet. Clique sur Lecture / Pause puis active le son si besoin.";
     }).catch(() => {
-      hint.textContent = "Clique sur “Lancer / Pause le film”.";
+      hint.textContent = "Clique sur Lecture / Pause.";
     });
-  }, 300);
+  });
 }
 
 function toggleVideo(){
   if(video.paused){
     video.play().then(() => {
       disc.classList.add("playing");
-      hint.textContent = "Vidéo en lecture.";
-    }).catch(() => {
-      hint.textContent = "Lecture refusée par le navigateur. Vérifie le format MP4.";
     });
   }else{
     video.pause();
     disc.classList.remove("playing");
   }
-}
-
-function toggleSound(){
-  video.muted = !video.muted;
-  hint.textContent = video.muted ? "Son coupé." : "Son activé.";
 }
 
 audio.addEventListener("play", () => disc.classList.add("playing"));
@@ -318,6 +361,18 @@ audio.addEventListener("ended", () => disc.classList.remove("playing"));
 video.addEventListener("play", () => disc.classList.add("playing"));
 video.addEventListener("pause", () => disc.classList.remove("playing"));
 video.addEventListener("ended", () => disc.classList.remove("playing"));
+
+video.addEventListener("timeupdate", () => {
+  if(video.duration){
+    videoRange.value = (video.currentTime / video.duration) * 100;
+  }
+});
+
+videoRange.addEventListener("input", () => {
+  if(video.duration){
+    video.currentTime = (videoRange.value / 100) * video.duration;
+  }
+});
 </script>
 </body>
 </html>
