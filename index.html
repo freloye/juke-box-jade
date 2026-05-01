@@ -205,19 +205,15 @@ function playAudio(src){
   });
 }
 
-function playVideo(src){
-  reset();
-  disc.classList.add("video");
-  controls.style.display="block";
-  video.style.display="block";
-  video.src=src;
+let currentAudio = new Audio();
 
-  video.muted=false;
-  video.play().then(()=>{
+function playAudio(src){
+  reset();
+  disc.classList.add("audio");
+
+  currentAudio.src = src;
+  currentAudio.play().then(()=>{
     disc.classList.add("playing");
-  }).catch(()=>{
-    video.muted=true;
-    video.play();
   });
 }
 
