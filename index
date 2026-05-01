@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Écouter les chansons</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #faf7f2;
+      font-family: Arial, sans-serif;
+    }
+    .box { text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <p>🎵 La musique démarre automatiquement</p>
+    <audio id="player" autoplay></audio>
+  </div>
+
+  <script>
+    const playlist = [
+      "dans-attente-jade.mp3",
+      "jade-au-petit-matin.mp3",
+      "effet-jade.mp3"
+    ];
+
+    let index = 0;
+    const player = document.getElementById("player");
+    const FADE_DURATION = 3;
+    const FADE_STEP = 0.05;
+    const INTERVAL = (FADE_DURATION * 1000) / (1 / FADE_STEP);
+
+    function fadeOut(callback) {
+      const fade = setInterval(() => {
+        if (player.volume > FADE_STEP) player.volume -= FADE_STEP;
+        else {
+          player.volume = 0;
+          clearInterval(fade);
+          callback();
+        }
+      }, INTERVAL);
+    }
+
+    function fadeIn() {
+      player.volume = 0;
+      player.play();
+      const fade = setInterval(() => {
+        if (player.volume < 1 - FADE_STEP) player.volume += FADE_STEP;
+        else {
+          player.volume = 1;
+          clearInterval(fade);
+        }
+      }, INTERVAL);
+    }
+
+    function playTrack(i) {
+      player.src = playlist[i];
+      fadeIn();
+    }
+
+    player.addEventListener("timeupdate", () => {
+      if (player.duration &&
+          player.currentTime > player.duration - FADE_DURATION &&
+          player.volume === 1) {
+        fadeOut(() => {
+          index = (index + 1) % playlist.length;
+          playTrack(index);
+        });
+      }
+    });
+
+    playTrack(index);
+  </script>
+</body>
+</html>

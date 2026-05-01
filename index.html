@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Juke-box de Jade</title>
+
+  <meta property="og:title" content="Juke-box de Jade" />
+  <meta property="og:description" content="Les chansons de Jade" />
+  <meta property="og:image" content="pochette-jade.jpg" />
+  <meta property="og:type" content="music.playlist" />
+
+  <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
+
+  <style>
+    :root{
+      --gold:#f4d27a;
+      --pink:#ffd7e8;
+      --dark:#050508;
+      --panel:rgba(10,10,15,.72);
+      --text:#ffffff;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:#000;
+      overflow-x:hidden;
+    }
+
+    .bg{
+      position:fixed;
+      inset:0;
+      background:url("pochette-jade.jpg") center/cover no-repeat;
+      filter:blur(28px) brightness(.45);
+      transform:scale(1.12);
+      z-index:-2;
+    }
+
+    .veil{
+      position:fixed;
+      inset:0;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,.08), rgba(0,0,0,.88)),
+        linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.92));
+      z-index:-1;
+    }
+
+    .page{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+
+    .card{
+      width:min(960px, 100%);
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:28px;
+      padding:28px;
+      box-shadow:0 30px 90px rgba(0,0,0,.65);
+      backdrop-filter:blur(14px);
+      text-align:center;
+    }
+
+    h1{
+      margin:0 0 8px;
+      font-size:clamp(2rem, 5vw, 4rem);
+      letter-spacing:.04em;
+      color:var(--pink);
+      text-shadow:0 0 24px rgba(255,215,232,.35);
+    }
+
+    .subtitle{
+      margin:0 0 28px;
+      color:rgba(255,255,255,.78);
+      font-size:1.05rem;
+    }
+
+    .main{
+      display:grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap:30px;
+      align-items:center;
+    }
+
+    .disc-wrap{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    .disc{
+      width:min(360px, 78vw);
+      aspect-ratio:1/1;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at center, #050505 0 6%, transparent 6.5%),
+        repeating-radial-gradient(circle, rgba(255,255,255,.12) 0 1px, rgba(0,0,0,.06) 2px 7px),
+        url("pochette-jade.jpg") center/cover no-repeat;
+      box-shadow:
+        inset 0 0 0 12px rgba(0,0,0,.28),
+        inset 0 0 65px rgba(0,0,0,.55),
+        0 25px 70px rgba(0,0,0,.7);
+      animation:spin 12s linear infinite;
+      animation-play-state:paused;
+      position:relative;
+    }
+
+    .disc.playing{
+      animation-play-state:running;
+    }
+
+    .disc::after{
+      content:"";
+      position:absolute;
+      inset:42%;
+      border-radius:50%;
+      background:radial-gradient(circle, #111, #000);
+      border:3px solid rgba(255,255,255,.25);
+      box-shadow:0 0 20px rgba(255,255,255,.12);
+    }
+
+    @keyframes spin{
+      from{transform:rotate(0deg)}
+      to{transform:rotate(360deg)}
+    }
+
+    .player{
+      text-align:left;
+    }
+
+    .now{
+      font-size:1.45rem;
+      font-weight:bold;
+      margin-bottom:18px;
+      color:var(--gold);
+    }
+
+    .tracks{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-bottom:22px;
+    }
+
+    .track{
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      padding:15px 18px;
+      border-radius:16px;
+      cursor:pointer;
+      font-size:1rem;
+      text-align:left;
+      transition:.2s;
+    }
+
+    .track:hover,
+    .track.active{
+      background:rgba(244,210,122,.22);
+      border-color:rgba(244,210,122,.7);
+      transform:translateY(-1px);
+    }
+
+    audio{
+      width:100%;
+      margin-top:8px;
+    }
+
+    .hint{
+      margin-top:14px;
+      font-size:.9rem;
+      color:rgba(255,255,255,.58);
+      line-height:1.4;
+    }
+
+    @media(max-width:760px){
+      .main{
+        grid-template-columns:1fr;
+      }
+
+      .player{
+        text-align:center;
+      }
+
+      .track{
+        text-align:center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg" id="bg"></div>
+  <div class="veil"></div>
+
+  <main class="page">
+    <section class="card">
+      <h1>Juke-box de Jade</h1>
+      <p class="subtitle">Trois chansons, une même lumière.</p>
+
+      <div class="main">
+        <div class="disc-wrap">
+          <div class="disc" id="disc"></div>
+        </div>
+
+        <div class="player">
+          <div class="now" id="now">Choisir une chanson</div>
+
+          <div class="tracks">
+            <button class="track" data-src="dans-attente-jade.mp3">
+              Dans l’attente de Jade
+            </button>
+
+            <button class="track" data-src="effet-jade.mp3">
+              Effet Jade
+            </button>
+
+            <button class="track" data-src="jade-au-petit-matin.mp3">
+              Jade au petit matin
+            </button>
+          </div>
+
+          <audio id="audio" controls preload="metadata"></audio>
+
+          <div class="hint">
+            L’image du disque utilise automatiquement la pochette intégrée dans les métadonnées du MP3 si elle existe.
+            Sinon, la page utilise <strong>pochette-jade.jpg</strong>.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const audio = document.getElementById("audio");
+    const disc = document.getElementById("disc");
+    const bg = document.getElementById("bg");
+    const now = document.getElementById("now");
+    const buttons = document.querySelectorAll(".track");
+
+    const fallbackCover = "pochette-jade.jpg";
+
+    function titleFromFilename(filename){
+      return filename
+        .replace(".mp3", "")
+        .replaceAll("-", " ")
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function setCover(src){
+      disc.style.backgroundImage =
+        `radial-gradient(circle at center, #050505 0 6%, transparent 6.5%),
+         repeating-radial-gradient(circle, rgba(255,255,255,.12) 0 1px, rgba(0,0,0,.06) 2px 7px),
+         url("${src}")`;
+
+      bg.style.backgroundImage = `url("${src}")`;
+    }
+
+    function loadEmbeddedCover(mp3file){
+      if (!window.jsmediatags) {
+        setCover(fallbackCover);
+        return;
+      }
+
+      jsmediatags.read(mp3file, {
+        onSuccess: function(tag) {
+          const picture = tag.tags.picture;
+
+          if (picture) {
+            let base64String = "";
+            for (let i = 0; i < picture.data.length; i++) {
+              base64String += String.fromCharCode(picture.data[i]);
+            }
+
+            const imageUri = "data:" + picture.format + ";base64," + window.btoa(base64String);
+            setCover(imageUri);
+          } else {
+            setCover(fallbackCover);
+          }
+        },
+        onError: function() {
+          setCover(fallbackCover);
+        }
+      });
+    }
+
+    function playTrack(button){
+      const src = button.dataset.src;
+
+      buttons.forEach(b => b.classList.remove("active"));
+      button.classList.add("active");
+
+      audio.src = src;
+      now.textContent = button.textContent.trim() || titleFromFilename(src);
+
+      loadEmbeddedCover(src);
+
+      audio.play().catch(() => {
+        now.textContent = "Clique sur lecture pour démarrer";
+      });
+    }
+
+    buttons.forEach(button => {
+      button.addEventListener("click", () => playTrack(button));
+    });
+
+    audio.addEventListener("play", () => {
+      disc.classList.add("playing");
+    });
+
+    audio.addEventListener("pause", () => {
+      disc.classList.remove("playing");
+    });
+
+    audio.addEventListener("ended", () => {
+      disc.classList.remove("playing");
+    });
+
+    setCover(fallbackCover);
+  </script>
+</body>
+</html>
+
