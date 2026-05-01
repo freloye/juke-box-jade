@@ -202,9 +202,12 @@ function playVideo(src){
   video.style.display="block";
   video.src=src;
 
-  video.muted=true; // auto play mobile OK
+  video.muted=false;
   video.play().then(()=>{
     disc.classList.add("playing");
+  }).catch(()=>{
+    video.muted=true;
+    video.play();
   });
 }
 
