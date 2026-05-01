@@ -109,7 +109,13 @@ h1{
 .disc.video video{
   display:block;
 }
+.disc.video::before{
+  display:none !important;
+}
 
+.disc.video::after{
+  display:none !important;
+}
 .disc::before{
   content:"";
   position:absolute;
