@@ -293,11 +293,13 @@ function playVideo(btn, src){
   video.src = src;
   video.load();
 
-  video.play().then(() => {
-    disc.classList.add("playing");
-  }).catch(() => {
-    now.textContent = "Clique sur lecture dans le disque";
-  });
+video.muted = true;
+video.play().then(() => {
+  disc.classList.add("playing");
+  now.textContent = "Effet Jade — vidéo lancée, active le son si besoin";
+}).catch(() => {
+  now.textContent = "Clique sur lecture dans le disque";
+});
 }
 
 audio.addEventListener("play", () => disc.classList.add("playing"));
