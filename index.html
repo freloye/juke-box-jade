@@ -179,10 +179,17 @@ const controls=document.getElementById("videoControls");
 const range=document.getElementById("range");
 
 function reset(){
- video.pause();
-video.src="";
+  currentAudio.pause();
+  currentAudio = new Audio();
+
+  video.pause();
+  video.currentTime = 0;
+  video.removeAttribute("src");
+  video.load();
+
   controls.style.display="none";
   video.style.display="none";
+
   disc.classList.remove("audio","video","playing");
 }
 
