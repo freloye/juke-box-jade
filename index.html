@@ -104,18 +104,13 @@ h1{
   object-fit:cover;
   display:none;
   z-index:1;
+  pointer-events:none;
 }
 
 .disc.video video{
   display:block;
 }
-.disc.video::before{
-  display:none !important;
-}
 
-.disc.video::after{
-  display:none !important;
-}
 .disc::before{
   content:"";
   position:absolute;
@@ -190,6 +185,31 @@ audio{
   margin-top:10px;
 }
 
+.video-panel{
+  display:none;
+  margin-top:10px;
+}
+
+.video-panel button{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(244,210,122,.25);
+  color:white;
+  font-size:1rem;
+  cursor:pointer;
+}
+
+.video-panel button:hover{
+  background:rgba(244,210,122,.38);
+}
+
+.video-panel input{
+  width:100%;
+  margin-top:14px;
+}
+
 .hint{
   margin-top:14px;
   font-size:.9rem;
@@ -215,7 +235,7 @@ audio{
 
   <div class="main">
     <div class="disc audio" id="disc">
-      <video id="video" controls playsinline preload="metadata"></video>
+      <video id="video" playsinline preload="metadata"></video>
     </div>
 
     <div class="player">
@@ -225,7 +245,7 @@ audio{
         Dans l’attente de Jade
       </button>
 
-      <button class="track" onclick="playVideo(this,'effet-jade-github.mp4')">
+      <button class="track" onclick="prepareVideo(this,'effet-jade-github.mp4')">
         Effet Jade
       </button>
 
@@ -235,8 +255,13 @@ audio{
 
       <audio id="audio" controls preload="metadata"></audio>
 
+      <div class="video-panel" id="videoPanel">
+        <button id="videoPlayBtn" onclick="toggleVideo()">▶ Lancer / Pause le film</button>
+        <input id="videoRange" type="range" min="0" max="100" value="0">
+      </div>
+
       <div class="hint">
-        Pour Effet Jade : si la vidéo affiche la durée mais ne démarre pas, clique sur le bouton lecture directement dans le disque.
+        Le film s’affiche dans le disque. La commande de lecture est volontairement séparée pour éviter le blocage par l’effet circulaire.
       </div>
     </div>
   </div>
@@ -249,6 +274,8 @@ const audio = document.getElementById("audio");
 const video = document.getElementById("video");
 const now = document.getElementById("now");
 const buttons = document.querySelectorAll(".track");
+const videoPanel = document.getElementById("videoPanel");
+const videoRange = document.getElementById("videoRange");
 
 function activeButton(btn){
   buttons.forEach(b => b.classList.remove("active"));
@@ -265,8 +292,9 @@ function reset(){
   audio.load();
   video.load();
 
-  video.style.display = "none";
   audio.style.display = "block";
+  videoPanel.style.display = "none";
+  video.style.display = "none";
 
   disc.classList.remove("playing","audio","video");
   disc.style.backgroundImage = 'url("pochette-jade.jpg")';
@@ -287,25 +315,35 @@ function playAudio(btn, src){
   });
 }
 
-function playVideo(btn, src){
+function prepareVideo(btn, src){
   reset();
   activeButton(btn);
 
   now.textContent = btn.textContent.trim();
   audio.style.display = "none";
+  videoPanel.style.display = "block";
 
   disc.classList.add("video");
-  video.style.display = "block";
-  video.src = src;
-  video.load();
 
-video.muted = true;
-video.play().then(() => {
-  disc.classList.add("playing");
-  now.textContent = "Effet Jade — vidéo lancée, active le son si besoin";
-}).catch(() => {
-  now.textContent = "Clique sur lecture dans le disque";
-});
+  video.src = src;
+  video.muted = false;
+  video.controls = false;
+  video.style.display = "block";
+  video.load();
+}
+
+function toggleVideo(){
+  if(video.paused){
+    video.play().then(() => {
+      disc.classList.add("playing");
+      now.textContent = "Effet Jade";
+    }).catch(() => {
+      now.textContent = "Lecture bloquée : reclique sur Lancer";
+    });
+  }else{
+    video.pause();
+    disc.classList.remove("playing");
+  }
 }
 
 audio.addEventListener("play", () => disc.classList.add("playing"));
@@ -315,6 +353,18 @@ audio.addEventListener("ended", () => disc.classList.remove("playing"));
 video.addEventListener("play", () => disc.classList.add("playing"));
 video.addEventListener("pause", () => disc.classList.remove("playing"));
 video.addEventListener("ended", () => disc.classList.remove("playing"));
+
+video.addEventListener("timeupdate", () => {
+  if(video.duration){
+    videoRange.value = (video.currentTime / video.duration) * 100;
+  }
+});
+
+videoRange.addEventListener("input", () => {
+  if(video.duration){
+    video.currentTime = (videoRange.value / 100) * video.duration;
+  }
+});
 </script>
 </body>
 </html>
