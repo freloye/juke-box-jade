@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>Juke-box de Jade</title>
 
   <meta property="og:title" content="Juke-box de Jade" />
@@ -14,21 +13,13 @@
   <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
 
   <style>
-    :root{
-      --gold:#f4d27a;
-      --pink:#ffd7e8;
-      --dark:#050508;
-      --panel:rgba(10,10,15,.72);
-      --text:#ffffff;
-    }
-
     *{box-sizing:border-box}
 
     body{
       margin:0;
       min-height:100vh;
       font-family:Arial, Helvetica, sans-serif;
-      color:var(--text);
+      color:white;
       background:#000;
       overflow-x:hidden;
     }
@@ -61,7 +52,7 @@
 
     .card{
       width:min(960px, 100%);
-      background:var(--panel);
+      background:rgba(10,10,15,.72);
       border:1px solid rgba(255,255,255,.18);
       border-radius:28px;
       padding:28px;
@@ -74,7 +65,7 @@
       margin:0 0 8px;
       font-size:clamp(2rem, 5vw, 4rem);
       letter-spacing:.04em;
-      color:var(--pink);
+      color:#ffd7e8;
       text-shadow:0 0 24px rgba(255,215,232,.35);
     }
 
@@ -86,7 +77,7 @@
 
     .main{
       display:grid;
-      grid-template-columns: 1fr 1.1fr;
+      grid-template-columns:1fr 1.1fr;
       gap:30px;
       align-items:center;
     }
@@ -102,12 +93,12 @@
       aspect-ratio:1/1;
       border-radius:50%;
       overflow:hidden;
+      background:url("pochette-jade.jpg") center/cover no-repeat;
       box-shadow:
         inset 0 0 0 12px rgba(0,0,0,.28),
         inset 0 0 65px rgba(0,0,0,.55),
         0 25px 70px rgba(0,0,0,.7);
       position:relative;
-      background:url("pochette-jade.jpg") center/cover no-repeat;
     }
 
     .disc.audio-mode{
@@ -117,10 +108,6 @@
 
     .disc.audio-mode.playing{
       animation-play-state:running;
-    }
-
-    .disc.video-mode{
-      animation:none;
     }
 
     .disc video{
@@ -143,8 +130,8 @@
       inset:0;
       border-radius:50%;
       background:
-        repeating-radial-gradient(circle, rgba(255,255,255,.16) 0 1px, rgba(0,0,0,.05) 2px 7px),
-        radial-gradient(circle at center, transparent 0 58%, rgba(0,0,0,.38) 72%, rgba(0,0,0,.7) 100%);
+        repeating-radial-gradient(circle, rgba(255,255,255,.16) 0 1px, rgba(0,0,0,.06) 2px 7px),
+        radial-gradient(circle at center, transparent 0 58%, rgba(0,0,0,.35) 75%, rgba(0,0,0,.75) 100%);
       z-index:2;
       pointer-events:none;
     }
@@ -183,7 +170,7 @@
       font-size:1.45rem;
       font-weight:bold;
       margin-bottom:18px;
-      color:var(--gold);
+      color:#f4d27a;
     }
 
     .tracks{
@@ -212,18 +199,16 @@
       transform:translateY(-1px);
     }
 
-    audio,
+    audio{
+      width:100%;
+      margin-top:8px;
+      display:block;
+    }
+
     .video-controls{
       width:100%;
       margin-top:8px;
-    }
-
-    .video-controls{
       display:none;
-    }
-
-    .video-controls.active{
-      display:block;
     }
 
     .hint{
@@ -234,17 +219,9 @@
     }
 
     @media(max-width:760px){
-      .main{
-        grid-template-columns:1fr;
-      }
-
-      .player{
-        text-align:center;
-      }
-
-      .track{
-        text-align:center;
-      }
+      .main{grid-template-columns:1fr}
+      .player{text-align:center}
+      .track{text-align:center}
     }
   </style>
 </head>
@@ -261,7 +238,7 @@
       <div class="main">
         <div class="disc-wrap">
           <div class="disc audio-mode" id="disc">
-            <video id="video" playsinline></video>
+            <video id="videoInDisc" playsinline muted preload="metadata"></video>
           </div>
         </div>
 
@@ -283,12 +260,11 @@
           </div>
 
           <audio id="audio" controls preload="metadata"></audio>
-
-          <video id="videoControls" class="video-controls" controls preload="metadata"></video>
+          <video id="videoControls" class="video-controls" controls playsinline preload="metadata"></video>
 
           <div class="hint">
-            Pour les chansons MP3, l’image du disque utilise la pochette intégrée si elle existe.
-            Pour <strong>Effet Jade</strong>, le film s’affiche directement dans le disque.
+            Les chansons MP3 utilisent leur pochette intégrée si elle existe.
+            Le film Effet Jade s’affiche dans le disque.
           </div>
         </div>
       </div>
@@ -297,7 +273,7 @@
 
   <script>
     const audio = document.getElementById("audio");
-    const video = document.getElementById("video");
+    const videoInDisc = document.getElementById("videoInDisc");
     const videoControls = document.getElementById("videoControls");
     const disc = document.getElementById("disc");
     const bg = document.getElementById("bg");
@@ -313,20 +289,22 @@
 
     function resetPlayers(){
       audio.pause();
-      video.pause();
+      videoInDisc.pause();
       videoControls.pause();
 
       audio.removeAttribute("src");
-      video.removeAttribute("src");
+      videoInDisc.removeAttribute("src");
       videoControls.removeAttribute("src");
 
       audio.load();
-      video.load();
+      videoInDisc.load();
       videoControls.load();
 
-      disc.classList.remove("playing", "audio-mode", "video-mode");
-      videoControls.classList.remove("active");
       audio.style.display = "block";
+      videoControls.style.display = "none";
+
+      disc.classList.remove("playing", "audio-mode", "video-mode");
+      setCover(fallbackCover);
     }
 
     function loadEmbeddedCover(mp3file){
@@ -338,13 +316,11 @@
       jsmediatags.read(mp3file, {
         onSuccess: function(tag) {
           const picture = tag.tags.picture;
-
           if (picture) {
             let base64String = "";
             for (let i = 0; i < picture.data.length; i++) {
               base64String += String.fromCharCode(picture.data[i]);
             }
-
             const imageUri = "data:" + picture.format + ";base64," + window.btoa(base64String);
             setCover(imageUri);
           } else {
@@ -359,11 +335,9 @@
 
     function playAudio(button){
       const src = button.dataset.src;
-
       resetPlayers();
 
       disc.classList.add("audio-mode");
-      audio.style.display = "block";
 
       audio.src = "./" + src;
       audio.load();
@@ -378,28 +352,29 @@
 
     function playVideo(button){
       const src = button.dataset.src;
-
       resetPlayers();
 
       disc.classList.add("video-mode");
-      audio.style.display = "none";
-      videoControls.classList.add("active");
 
-      video.src = "./" + src;
+      audio.style.display = "none";
+      videoControls.style.display = "block";
+
+      videoInDisc.src = "./" + src;
       videoControls.src = "./" + src;
 
-      video.muted = true;
+      videoInDisc.muted = true;
       videoControls.muted = false;
 
-      video.load();
+      videoInDisc.load();
       videoControls.load();
 
       now.textContent = button.textContent.trim();
-      setCover(fallbackCover);
 
-      video.play().catch(() => {});
-      videoControls.play().catch(() => {
-        now.textContent = "Clique sur lecture pour démarrer";
+      videoControls.play().then(() => {
+        disc.classList.add("playing");
+        videoInDisc.play().catch(() => {});
+      }).catch(() => {
+        now.textContent = "Clique sur lecture pour démarrer la vidéo";
       });
     }
 
@@ -416,36 +391,28 @@
       });
     });
 
-    audio.addEventListener("play", () => {
-      disc.classList.add("playing");
-    });
-
-    audio.addEventListener("pause", () => {
-      disc.classList.remove("playing");
-    });
-
-    audio.addEventListener("ended", () => {
-      disc.classList.remove("playing");
-    });
+    audio.addEventListener("play", () => disc.classList.add("playing"));
+    audio.addEventListener("pause", () => disc.classList.remove("playing"));
+    audio.addEventListener("ended", () => disc.classList.remove("playing"));
 
     videoControls.addEventListener("play", () => {
       disc.classList.add("playing");
-      video.play().catch(() => {});
+      videoInDisc.play().catch(() => {});
     });
 
     videoControls.addEventListener("pause", () => {
       disc.classList.remove("playing");
-      video.pause();
+      videoInDisc.pause();
     });
 
     videoControls.addEventListener("ended", () => {
       disc.classList.remove("playing");
-      video.pause();
+      videoInDisc.pause();
     });
 
     videoControls.addEventListener("timeupdate", () => {
-      if (Math.abs(video.currentTime - videoControls.currentTime) > 0.3) {
-        video.currentTime = videoControls.currentTime;
+      if (Math.abs(videoInDisc.currentTime - videoControls.currentTime) > 0.35) {
+        videoInDisc.currentTime = videoControls.currentTime;
       }
     });
 
@@ -463,4 +430,3 @@
   </script>
 </body>
 </html>
-
