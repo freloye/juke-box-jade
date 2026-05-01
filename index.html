@@ -101,21 +101,56 @@
       width:min(360px, 78vw);
       aspect-ratio:1/1;
       border-radius:50%;
-      background:
-        radial-gradient(circle at center, #050505 0 6%, transparent 6.5%),
-        repeating-radial-gradient(circle, rgba(255,255,255,.12) 0 1px, rgba(0,0,0,.06) 2px 7px),
-        url("pochette-jade.jpg") center/cover no-repeat;
+      overflow:hidden;
       box-shadow:
         inset 0 0 0 12px rgba(0,0,0,.28),
         inset 0 0 65px rgba(0,0,0,.55),
         0 25px 70px rgba(0,0,0,.7);
-      animation:spin 12s linear infinite;
-      animation-play-state:paused;
       position:relative;
+      background:url("pochette-jade.jpg") center/cover no-repeat;
     }
 
-    .disc.playing{
+    .disc.audio-mode{
+      animation:spin 12s linear infinite;
+      animation-play-state:paused;
+    }
+
+    .disc.audio-mode.playing{
       animation-play-state:running;
+    }
+
+    .disc.video-mode{
+      animation:none;
+    }
+
+    .disc video{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:none;
+      z-index:1;
+    }
+
+    .disc.video-mode video{
+      display:block;
+    }
+
+    .disc::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:
+        repeating-radial-gradient(circle, rgba(255,255,255,.16) 0 1px, rgba(0,0,0,.05) 2px 7px),
+        radial-gradient(circle at center, transparent 0 58%, rgba(0,0,0,.38) 72%, rgba(0,0,0,.7) 100%);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .disc.video-mode.playing::before{
+      animation:edgeSpin 7s linear infinite;
     }
 
     .disc::after{
@@ -126,9 +161,16 @@
       background:radial-gradient(circle, #111, #000);
       border:3px solid rgba(255,255,255,.25);
       box-shadow:0 0 20px rgba(255,255,255,.12);
+      z-index:3;
+      pointer-events:none;
     }
 
     @keyframes spin{
+      from{transform:rotate(0deg)}
+      to{transform:rotate(360deg)}
+    }
+
+    @keyframes edgeSpin{
       from{transform:rotate(0deg)}
       to{transform:rotate(360deg)}
     }
@@ -170,9 +212,18 @@
       transform:translateY(-1px);
     }
 
-    audio{
+    audio,
+    .video-controls{
       width:100%;
       margin-top:8px;
+    }
+
+    .video-controls{
+      display:none;
+    }
+
+    .video-controls.active{
+      display:block;
     }
 
     .hint{
@@ -209,31 +260,35 @@
 
       <div class="main">
         <div class="disc-wrap">
-          <div class="disc" id="disc"></div>
+          <div class="disc audio-mode" id="disc">
+            <video id="video" playsinline></video>
+          </div>
         </div>
 
         <div class="player">
           <div class="now" id="now">Choisir une chanson</div>
 
           <div class="tracks">
-            <button class="track" data-src="dans-attente-jade.mp3">
+            <button class="track" data-type="audio" data-src="dans-attente-jade.mp3">
               Dans l’attente de Jade
             </button>
 
-            <button class="track" data-src="effet-jade.mp3">
+            <button class="track" data-type="video" data-src="effet-jade-github.mp4">
               Effet Jade
             </button>
 
-            <button class="track" data-src="jade-au-petit-matin.mp3">
+            <button class="track" data-type="audio" data-src="jade-au-petit-matin.mp3">
               Jade au petit matin
             </button>
           </div>
 
           <audio id="audio" controls preload="metadata"></audio>
 
+          <video id="videoControls" class="video-controls" controls preload="metadata"></video>
+
           <div class="hint">
-            L’image du disque utilise automatiquement la pochette intégrée dans les métadonnées du MP3 si elle existe.
-            Sinon, la page utilise <strong>pochette-jade.jpg</strong>.
+            Pour les chansons MP3, l’image du disque utilise la pochette intégrée si elle existe.
+            Pour <strong>Effet Jade</strong>, le film s’affiche directement dans le disque.
           </div>
         </div>
       </div>
@@ -242,6 +297,8 @@
 
   <script>
     const audio = document.getElementById("audio");
+    const video = document.getElementById("video");
+    const videoControls = document.getElementById("videoControls");
     const disc = document.getElementById("disc");
     const bg = document.getElementById("bg");
     const now = document.getElementById("now");
@@ -249,20 +306,27 @@
 
     const fallbackCover = "pochette-jade.jpg";
 
-    function titleFromFilename(filename){
-      return filename
-        .replace(".mp3", "")
-        .replaceAll("-", " ")
-        .replace(/\b\w/g, c => c.toUpperCase());
+    function setCover(src){
+      disc.style.backgroundImage = `url("${src}")`;
+      bg.style.backgroundImage = `url("${src}")`;
     }
 
-    function setCover(src){
-      disc.style.backgroundImage =
-        `radial-gradient(circle at center, #050505 0 6%, transparent 6.5%),
-         repeating-radial-gradient(circle, rgba(255,255,255,.12) 0 1px, rgba(0,0,0,.06) 2px 7px),
-         url("${src}")`;
+    function resetPlayers(){
+      audio.pause();
+      video.pause();
+      videoControls.pause();
 
-      bg.style.backgroundImage = `url("${src}")`;
+      audio.removeAttribute("src");
+      video.removeAttribute("src");
+      videoControls.removeAttribute("src");
+
+      audio.load();
+      video.load();
+      videoControls.load();
+
+      disc.classList.remove("playing", "audio-mode", "video-mode");
+      videoControls.classList.remove("active");
+      audio.style.display = "block";
     }
 
     function loadEmbeddedCover(mp3file){
@@ -293,15 +357,18 @@
       });
     }
 
-    function playTrack(button){
+    function playAudio(button){
       const src = button.dataset.src;
 
-      buttons.forEach(b => b.classList.remove("active"));
-      button.classList.add("active");
+      resetPlayers();
 
-      audio.src = src;
-      now.textContent = button.textContent.trim() || titleFromFilename(src);
+      disc.classList.add("audio-mode");
+      audio.style.display = "block";
 
+      audio.src = "./" + src;
+      audio.load();
+
+      now.textContent = button.textContent.trim();
       loadEmbeddedCover(src);
 
       audio.play().catch(() => {
@@ -309,8 +376,44 @@
       });
     }
 
+    function playVideo(button){
+      const src = button.dataset.src;
+
+      resetPlayers();
+
+      disc.classList.add("video-mode");
+      audio.style.display = "none";
+      videoControls.classList.add("active");
+
+      video.src = "./" + src;
+      videoControls.src = "./" + src;
+
+      video.muted = true;
+      videoControls.muted = false;
+
+      video.load();
+      videoControls.load();
+
+      now.textContent = button.textContent.trim();
+      setCover(fallbackCover);
+
+      video.play().catch(() => {});
+      videoControls.play().catch(() => {
+        now.textContent = "Clique sur lecture pour démarrer";
+      });
+    }
+
     buttons.forEach(button => {
-      button.addEventListener("click", () => playTrack(button));
+      button.addEventListener("click", () => {
+        buttons.forEach(b => b.classList.remove("active"));
+        button.classList.add("active");
+
+        if (button.dataset.type === "video") {
+          playVideo(button);
+        } else {
+          playAudio(button);
+        }
+      });
     });
 
     audio.addEventListener("play", () => {
@@ -322,6 +425,37 @@
     });
 
     audio.addEventListener("ended", () => {
+      disc.classList.remove("playing");
+    });
+
+    videoControls.addEventListener("play", () => {
+      disc.classList.add("playing");
+      video.play().catch(() => {});
+    });
+
+    videoControls.addEventListener("pause", () => {
+      disc.classList.remove("playing");
+      video.pause();
+    });
+
+    videoControls.addEventListener("ended", () => {
+      disc.classList.remove("playing");
+      video.pause();
+    });
+
+    videoControls.addEventListener("timeupdate", () => {
+      if (Math.abs(video.currentTime - videoControls.currentTime) > 0.3) {
+        video.currentTime = videoControls.currentTime;
+      }
+    });
+
+    audio.addEventListener("error", () => {
+      now.textContent = "Fichier audio introuvable ou illisible";
+      disc.classList.remove("playing");
+    });
+
+    videoControls.addEventListener("error", () => {
+      now.textContent = "Fichier vidéo introuvable ou illisible";
       disc.classList.remove("playing");
     });
 
