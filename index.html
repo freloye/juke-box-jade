@@ -164,7 +164,6 @@ Effet Jade
 Jade au petit matin
 </button>
 
-<audio id="audio" controls></audio>
 
 <div class="video-controls" id="videoControls">
   <button onclick="toggleVideo()">▶ Lecture / Pause</button>
@@ -174,25 +173,29 @@ Jade au petit matin
 </div>
 
 <script>
-const audio=document.getElementById("audio");
 const video=document.getElementById("video");
 const disc=document.getElementById("disc");
 const controls=document.getElementById("videoControls");
 const range=document.getElementById("range");
 
 function reset(){
-  audio.pause(); video.pause();
-  audio.src=""; video.src="";
+ video.pause();
+video.src="";
   controls.style.display="none";
   video.style.display="none";
   disc.classList.remove("audio","video","playing");
 }
 
+let currentAudio = new Audio();
+
 function playAudio(src){
   reset();
   disc.classList.add("audio");
-  audio.src=src;
-  audio.play().catch(()=>{});
+
+  currentAudio.src = src;
+  currentAudio.play().then(()=>{
+    disc.classList.add("playing");
+  });
 }
 
 function playVideo(src){
