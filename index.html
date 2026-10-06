@@ -176,7 +176,7 @@ h1{
     Jade au petit matin
   </button>
 
-  <button class="track" onclick="playAudio(this,'petite-jade-yeux-bleux.mp3')">
+  <button class="track" onclick="playAudio(this,'petite-jade-yeux-bleux.mp3','moi-jade-git.jpeg')">
     Petite Jade, yeux bleus
   </button>
 
@@ -223,10 +223,11 @@ function stopAll(){
   disc.classList.remove("audio","video","playing");
 }
 
-function playAudio(btn, src){
+function playAudio(btn, src, image = "pochette-jade.jpg"){
   stopAll();
   setActive(btn);
 
+  disc.style.backgroundImage = `url("${image}")`;
   disc.classList.add("audio");
   statusText.textContent = btn.textContent.trim();
 
